@@ -1,0 +1,724 @@
+openapi: 3.0.1
+info:
+  title: Get it done API
+  description: This API sevres for an application "Get it done", which is an tracking system of Kanban style.
+  contact:
+    email: lukasvrbaa@gmail.com
+  license:
+    name: MIT license
+    url: https://opensource.org/licenses/MIT
+  version: 1.0.0
+servers:
+  - url: localhost:8081/api
+tags:
+  - name: Boards
+    description: Handling board management
+  - name: Issues
+    description: Handling issues
+  - name: Sessions
+    description: Handling of log in and log out
+  - name: Projects
+    description: Handling projects
+
+paths:
+  /boards:
+    get:
+      tags:
+        - Boards
+      summary: Returns all availible boards for signed-in user.
+      operationId: getAllBoards
+      parameters:
+        - name: projectKeyOrId
+          in: query
+          description: Filters results to boards that are relevant to a project.
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: A list of all boards
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        400:
+          description: Invalid input values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+    post:
+      tags:
+        - Boards
+      summary: Creates a new board.
+      description: Creates a new board.
+      operationId: createBoard
+      requestBody:
+        description: Created board object
+        content:
+          application/json:
+            schema:
+              {}
+        required: true
+      responses:
+        201:
+          description: Board created
+        400:
+          description: Invalid input values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+  /boards/{boardId}:
+    get:
+      tags:
+        - Boards
+      summary: Returns a board for given ID.
+      description: Returns a board.
+      parameters:
+        - name: boardId
+          in: path
+          description: Board ID that needs to be fetched.
+          required: true
+          schema:
+            type: string
+      operationId: getOneBoard
+      responses:
+        200:
+          description: Board Recieved
+        400:
+          description: Invalid input values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        401:
+          description: User is not logged in.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        403:
+          description: User does not have enough rights
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+    delete:
+      tags:
+        - Boards
+      summary: Delete board
+      description: Permanently delete a board
+      operationId: deleteBoard
+      parameters:
+        - name: boardId
+          in: path
+          description: The id of a board to be deleted
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Board successfully deleted
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+  /boards/{boardId}/backlog:
+    get:
+      tags:
+        - Boards
+      summary: Returns all issues from the board's backlog, for the given board Id.
+      description: This only includes issues that the user has permission to view. The backlog contains incomplete issues that are not assigned to any future or active sprint.
+      parameters:
+        - name: boardId
+          in: path
+          description: Board ID that needs to be fetched.
+          required: true
+          schema:
+            type: string
+      operationId: getBacklogForBoard
+      responses:
+        200:
+          description: Backlog issues for board recieved
+        400:
+          description: Invalid input values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        401:
+          description: User is not logged in.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        403:
+          description: User does not have enough rights
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+  /boards/{boardId}/issues:
+    get:
+      tags:
+        - Boards
+      summary: Returns all issues for board for given ID.
+      description: Returns all issues for board for given ID.
+      parameters:
+        - name: boardId
+          in: path
+          description: Board ID that needs to be fetched.
+          required: true
+          schema:
+            type: string
+      operationId: getIssuesForBoard
+      responses:
+        200:
+          description: Board Recieved
+        400:
+          description: Invalid input values
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+
+  /issues:
+    post:
+      tags:
+        - Issues
+      summary: Create a issue
+      description: Create a friendship relation between two users.
+      operationId: createIssue
+      requestBody:
+        description: Object for creating issue.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueCreate'
+        required: true
+      responses:
+        201:
+          description: Issue created
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+  /issues/{IssueKeyorID}:
+    get:
+      tags:
+        - Issues
+      summary: Get issue for given Key or ID of issue.
+      operationId: getOneIssue
+      parameters:
+        - name: IssueKeyorID
+          in: path
+          description: Issue key or id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: An issue description
+          content:
+            application/json:
+              schema:
+                {}
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        404:
+          description: Issue not found.
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+    put:
+      tags:
+        - Issues
+      summary: Update issue
+      operationId: updateIssue
+      parameters:
+        - name: IssueKeyorID
+          in: path
+          description: Issue key or id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Issue object
+        content:
+          application/json:
+            schema:
+              {}
+      responses:
+        200:
+          description: A successful update of issue
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+    delete:
+      tags:
+        - Issues
+      summary: Delete issues
+      description: Permanently delete an issue
+      operationId: deleteIssue
+      parameters:
+        - name: IssueKeyorID
+          in: path
+          description: Issue key or ID to be deleted
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Issue successfully deleted
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+
+  /teams/{teamId}/users:
+    get:
+      tags:
+        - Teams
+      summary: Get members of a team
+      operationId: getTeamMembers
+      parameters:
+        - name: teamId
+          in: path
+          description: ID of a team
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: List of users in the team.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Friendship'
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+    put:
+      tags:
+        - Teams
+      summary: Update team
+      description: Updates team and returns it's new value
+      operationId: updateTeam
+      parameters:
+        - name: teamId
+          in: path
+          description: ID of a team to be updated
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Successful update of a team, returns its new value
+          content:
+            application/json:
+              schema:
+                {}
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+  /teams/{teamId}:
+    delete:
+      tags:
+        - Teams
+      summary: Delete team
+      description: Permanently delete a team.
+      operationId: deleteTeam
+      parameters:
+        - name: teamId
+          in: path
+          description: ID of team to be deleted.
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Successfully deleted
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+  /sessions:
+    get:
+      tags:
+        - Sessions
+      summary: Returns current user
+      description: Returns information about the currently authenticated user's session.
+      operationId: getUser
+      responses:
+        200:
+          description: Information about current logged-in user
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        401:
+          description: Caller is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+    post:
+      tags:
+        - Sessions
+      summary: Login a user
+      description: Creates a new session for a user.
+      operationId: createSession
+      requestBody:
+        description: Authentication crenetails
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Auth'
+        required: true
+      responses:
+        201:
+          description: Session established
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        401:
+          description: Log failed due to invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+    delete:
+      tags:
+        - Sessions
+      summary: Logout a user
+      description: Destroy the existing session
+      operationId: deleteSession
+
+      responses:
+        204:
+          description: User successfully logged out.
+        401:
+          description: Caller not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+  /projects:
+    post:
+      tags:
+        - Projects
+      summary: Create a project
+      description: Creates a new project.
+      operationId: createProject
+      requestBody:
+        description: Created game object
+        content:
+          application/json:
+            schema:
+              {}
+      responses:
+        201:
+          description: Project created
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        401:
+          description: User is not logged in.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        403:
+          description: User does not have enough rights.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+    get:
+      tags:
+        - Projects
+      summary: Get all projects
+      description: Returns all projects, that are visible for current logged in user.
+      operationId: getAllProjectsForUser
+      responses:
+        200:
+          description: Returns list of projects for current user
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+  /projects/{projectIdOrKey}:
+    get:
+      tags:
+        - Projects
+      summary: Get project description
+      operationId: getOneProject
+      parameters:
+        - name: projectIdOrKey
+          in: path
+          description: ID or key of a project
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Project description.
+          content:
+            application/json:
+              schema:
+                {}
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+
+    put:
+      tags:
+        - Projects
+      summary: Update Project
+      description: Updates team and returns it's new value
+      operationId: updateProject
+      parameters:
+        - name: projectIdOrKey
+          in: path
+          description: ID of a team to be updated
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Successfull update of a project.
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+    delete:
+      tags:
+        - Projects
+      summary: Delete project
+      description: Permanently delete a project
+      operationId: deleteProject
+      parameters:
+        - name: projectIdOrKey
+          in: path
+          description: Project key or ID to be deleted
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Project successfully deleted
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    Auth:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+    IssueCreate:
+      type: object
+    ApiErrResponse:
+      type: object
+      properties:
+        message:
+          type: string
