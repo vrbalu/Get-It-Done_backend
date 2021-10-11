@@ -2,15 +2,14 @@ package services
 
 import (
 	"GIT/helpers"
-	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
 )
 
+const projectsCollection = "gid_projects"
+
 func InsertProject() error {
-	ctx := context.TODO()
-	mongoService := DB.db.Collection("testing")
-	res, err := mongoService.InsertOne(ctx, gin.H{"Hello": "World"})
+	res, err := DB.InsertOne(projectsCollection, gin.H{"Hello": "World2"})
 	if err != nil {
 		return err
 	}
