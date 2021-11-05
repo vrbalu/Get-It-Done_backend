@@ -11,9 +11,9 @@ var (
 )
 
 func init() {
-	LoadEnvValues()
+	loadEnvValues()
 }
-func LoadEnvValues() {
+func loadEnvValues() {
 	DBName, DBUrl = loadDBCredentials("MONGODB_NAME", "MONGODB_URL")
 }
 

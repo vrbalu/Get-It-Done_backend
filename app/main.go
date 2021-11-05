@@ -1,15 +1,20 @@
 package main
 
 import (
-	"GIT/controllers"
-	"GIT/helpers"
+	"GID/controllers"
+	"GID/helpers"
+	"github.com/joho/godotenv"
+	"log"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Error loading the .env file: %v", err)
+	}
 	r := controllers.SetupRouter()
 	err := r.Run()
 	if err != nil {
-		helpers.Log.Error(err)
+		helpers.Log.Fatal(err)
 		return
 	}
 }

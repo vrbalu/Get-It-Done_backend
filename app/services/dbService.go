@@ -1,7 +1,7 @@
 package services
 
 import (
-	"GIT/config"
+	"GID/config"
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
