@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"GIT/services"
+	"GID/services"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )

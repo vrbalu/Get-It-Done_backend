@@ -1,13 +1,16 @@
-module GIT
+module GID
 
 go 1.17
 
 require (
+	github.com/auth0/go-jwt-middleware v1.0.1
+	github.com/form3tech-oss/jwt-go v3.2.5+incompatible
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.4
+	github.com/joho/godotenv v1.3.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/toorop/gin-logrus v0.0.0-20210225092905-2c785434f26f
-	go.mongodb.org/mongo-driver v1.7.3
+	go.mongodb.org/mongo-driver v1.7.4
 )
 
 require (

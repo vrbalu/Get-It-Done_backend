@@ -1,7 +1,7 @@
 package services
 
 import (
-	"GIT/helpers"
+	"GID/helpers"
 	"fmt"
 	"github.com/gin-gonic/gin"
 )

@@ -1,7 +1,8 @@
 package controllers
 
 import (
-	"GIT/helpers"
+	"GID/helpers"
+	"GID/middleware"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	ginlogrus "github.com/toorop/gin-logrus"
@@ -10,7 +11,6 @@ import (
 
 func SetupRouter() *gin.Engine {
 	router := gin.New()
-	// Go routines for websockets
 	router.Use(ginlogrus.Logger(helpers.Log), gin.Recovery()) //Setup logging and panic recovery
 	// CORS setup
 	router.Use(cors.New(cors.Config{
@@ -19,10 +19,18 @@ func SetupRouter() *gin.Engine {
 		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
 		AllowCredentials: false,
 		MaxAge:           72 * time.Hour,
+
+		// Check with
+		/*cors.Config{
+			AllowOrigins:     []string{"http://localhost:3000"},
+			AllowCredentials: true,
+			AllowHeaders:     []string{"Authorization"},
+		},*/
 	}))
 
 	// API routes
 	apiGroup := router.Group("/api")
+	apiGroup.Use(middleware.EnsureValidToken())
 	{
 		boardsController := BoardsController{}
 		boardsGroup := apiGroup.Group("/boards")
