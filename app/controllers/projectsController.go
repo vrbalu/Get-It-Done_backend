@@ -9,6 +9,7 @@ import (
 type ProjectsController struct{}
 
 func (*ProjectsController) GetAllProjects(c *gin.Context) {
+
 	c.JSON(http.StatusOK, "OK")
 }
 func (*ProjectsController) CreateProject(c *gin.Context) {

@@ -355,7 +355,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrResponse'
-
+  /teams:
+    post:
+      tags:
+        - Teams
+      summary: Create a team
+      operationId: createTeam
+      responses:
+        200:
+          description: List of users in the team.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Friendship'
+        400:
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
+        500:
+          description: Internal Server Error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrResponse'
   /teams/{teamId}/users:
     get:
       tags:

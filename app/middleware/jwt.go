@@ -13,7 +13,7 @@ import (
 )
 
 // EnsureValidToken is a gin.HandlerFunc middleware that will check the validity of our JWT.
-func EnsureValidToken() gin.HandlerFunc {
+func EnsureValidToken(c *gin.Context) {
 	var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 			// Verify 'aud' claim
@@ -34,17 +34,16 @@ func EnsureValidToken() gin.HandlerFunc {
 			if err != nil {
 				return token, err
 			}
-
+			c.Next()
 			return jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
 		},
 		SigningMethod: jwt.SigningMethodRS256,
 	})
 
-	return func(ctx *gin.Context) {
-		if err := jwtMiddleware.CheckJWT(ctx.Writer, ctx.Request); err != nil {
-			ctx.AbortWithStatus(http.StatusUnauthorized)
-		}
+	if err := jwtMiddleware.CheckJWT(c.Writer, c.Request); err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
 	}
+	c.Next()
 }
 
 type Jwks struct {

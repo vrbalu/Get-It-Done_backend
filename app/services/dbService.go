@@ -43,15 +43,15 @@ func (ds DbServiceType) InsertOne(coll string, data interface{}) (*mongo.InsertO
 	return one, nil
 }
 
-func (ds DbServiceType) GetOne(coll string, key string, value string, resultModel interface{}) (interface{}, error) {
+func (ds DbServiceType) GetOne(coll string, key string, value string, resultModel interface{}) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	filter := bson.D{{key, value}}
 	err := ds.db.Collection(coll).FindOne(ctx, filter).Decode(resultModel)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resultModel, nil
+	return nil
 }
 
 func (ds DbServiceType) FindByField(coll string, field string, value string) (interface{}, error) {
@@ -105,10 +105,21 @@ func (ds DbServiceType) DeleteOne(coll string, key string, value string) (*mongo
 	return res, nil
 }
 
-func (ds DbServiceType) UpdateOneById(coll string, id string, updateValue interface{}) (*mongo.UpdateResult, error) {
+func (ds DbServiceType) UpdateOneById(coll string, id string, updateData interface{}) (*mongo.UpdateResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	res, err := ds.db.Collection(coll).UpdateByID(ctx, id, updateValue)
+	res, err := ds.db.Collection(coll).UpdateByID(ctx, id, updateData)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (ds DbServiceType) UpdateOne(coll string, key string, value string, updateData interface{}) (*mongo.UpdateResult, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.D{{key, value}}
+	res, err := ds.db.Collection(coll).UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		return nil, err
 	}
