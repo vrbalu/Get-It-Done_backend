@@ -53,6 +53,29 @@ func (ds DbServiceType) GetOne(coll string, key string, value string, resultMode
 	}
 	return nil
 }
+func (ds DbServiceType) Find(coll string, filter interface{}) (interface{}, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	var result []bson.M
+	cursor, err := ds.db.Collection(coll).Find(ctx, filter)
+	defer func(cursor *mongo.Cursor, ctx context.Context) {
+		err = cursor.Close(ctx)
+	}(cursor, ctx)
+	if err != nil {
+		defer cancel()
+		return nil, err
+	}
+
+	for cursor.Next(ctx) {
+		var item bson.M
+		err = cursor.Decode(&item)
+		if err == nil {
+			result = append(result, item)
+		}
+	}
+	defer cancel()
+	return result, nil
+}
 
 func (ds DbServiceType) FindByField(coll string, field string, value string) (interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
