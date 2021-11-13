@@ -23,7 +23,7 @@ func init() {
 func (ds *DbServiceType) establishConnection() {
 	clientOptions := options.Client().
 		ApplyURI(config.DBUrl)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
@@ -34,7 +34,7 @@ func (ds *DbServiceType) establishConnection() {
 }
 
 func (ds DbServiceType) InsertOne(coll string, data interface{}) (*mongo.InsertOneResult, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 	one, err := ds.db.Collection(coll).InsertOne(ctx, data)
 	if err != nil {
@@ -43,18 +43,22 @@ func (ds DbServiceType) InsertOne(coll string, data interface{}) (*mongo.InsertO
 	return one, nil
 }
 
-func (ds DbServiceType) GetOne(coll string, key string, value string, resultModel interface{}) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+func (ds DbServiceType) GetOne(coll string, key string, value string) (*bson.M, error) {
+	var result *bson.M
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
-	filter := bson.D{{key, value}}
-	err := ds.db.Collection(coll).FindOne(ctx, filter).Decode(resultModel)
+	filter, err := buildFilter(key, value)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	err = ds.db.Collection(coll).FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
-func (ds DbServiceType) Find(coll string, filter interface{}) (interface{}, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+func (ds DbServiceType) Find(coll string, filter interface{}) ([]bson.M, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 	var result []bson.M
 	cursor, err := ds.db.Collection(coll).Find(ctx, filter)
@@ -78,7 +82,7 @@ func (ds DbServiceType) Find(coll string, filter interface{}) (interface{}, erro
 }
 
 func (ds DbServiceType) FindByField(coll string, field string, value string) (interface{}, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 	filter, err := buildFilter(field, value)
 	if err != nil {
@@ -118,9 +122,13 @@ func buildFilter(field string, value string) (bson.M, error) {
 }
 
 func (ds DbServiceType) DeleteOne(coll string, key string, value string) (*mongo.DeleteResult, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
-	filter := bson.D{{key, value}}
+	filter, err := buildFilter(key, value)
+	if err != nil {
+		defer cancel()
+		return nil, err
+	}
 	res, err := ds.db.Collection(coll).DeleteOne(ctx, filter)
 	if err != nil {
 		return nil, err
@@ -129,7 +137,7 @@ func (ds DbServiceType) DeleteOne(coll string, key string, value string) (*mongo
 }
 
 func (ds DbServiceType) UpdateOneById(coll string, id string, updateData interface{}) (*mongo.UpdateResult, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 	res, err := ds.db.Collection(coll).UpdateByID(ctx, id, updateData)
 	if err != nil {
@@ -139,12 +147,17 @@ func (ds DbServiceType) UpdateOneById(coll string, id string, updateData interfa
 }
 
 func (ds DbServiceType) UpdateOne(coll string, key string, value string, updateData interface{}) (*mongo.UpdateResult, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
-	filter := bson.D{{key, value}}
-	res, err := ds.db.Collection(coll).UpdateOne(ctx, filter, updateData)
+	filter, err := buildFilter(key, value)
+	if err != nil {
+		defer cancel()
+		return nil, err
+	}
+	res, err := ds.db.Collection(coll).ReplaceOne(ctx, filter, updateData, options.Replace().SetUpsert(false))
 	if err != nil {
 		return nil, err
 	}
+
 	return res, nil
 }

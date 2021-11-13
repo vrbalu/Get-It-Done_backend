@@ -54,15 +54,15 @@ func SetupRouter() *gin.Engine {
 		projectsController := ProjectsController{}
 		apiGroup.POST("/projects", projectsController.CreateProject)
 		apiGroup.GET("/projects", projectsController.GetAllProjects)
-		apiGroup.PUT("/projects/:projectIdOrKey", projectsController.GetDescription)
-		apiGroup.GET("/projects/:projectIdOrKey", projectsController.UpdateProject)
+		apiGroup.GET("/projects/:projectIdOrKey", projectsController.GetDescription)
+		apiGroup.PUT("/projects/:projectIdOrKey", projectsController.UpdateProject)
 		apiGroup.DELETE("/projects/:projectIdOrKey", projectsController.DeleteProject)
 
 		teamsController := TeamsController{}
 		apiGroup.POST("/teams", teamsController.CreateTeam)
 		apiGroup.GET("/teams/:teamId", teamsController.GetMembers)
 		apiGroup.POST("/teams/:teamId", teamsController.UpdateTeam)
-		apiGroup.PUT("//teams:teamId/:projectIdOrKey", teamsController.DeleteTeam)
+		apiGroup.DELETE("/teams/:teamId", teamsController.DeleteTeam)
 	}
 	return router
 }

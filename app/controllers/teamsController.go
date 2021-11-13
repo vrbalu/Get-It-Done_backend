@@ -5,6 +5,7 @@ import (
 	"GID/services"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"io/ioutil"
 	"net/http"
@@ -23,7 +24,7 @@ func (tc TeamsController) CreateTeam(c *gin.Context) {
 		c.AbortWithStatusJSON(500, err)
 		return
 	}
-	err = services.DB.GetOne(teamsCollection, "name", team.Name, &existing)
+	_, err = services.DB.GetOne(teamsCollection, "name", team.Name)
 	if err != mongo.ErrNoDocuments {
 		c.AbortWithStatusJSON(500, err)
 		return
@@ -41,11 +42,14 @@ func (tc TeamsController) CreateTeam(c *gin.Context) {
 }
 
 func (tc TeamsController) GetMembers(c *gin.Context) {
-	var team models.Team
 	teamName := c.Param("team")
-	err := services.DB.GetOne(teamsCollection, "name", teamName, &team)
+	t, err := services.DB.GetOne(teamsCollection, "name", teamName)
 	if err != nil {
 		c.AbortWithStatusJSON(500, err)
+		return
+	}
+	team, err := masrshalToTeam(t)
+	if err != nil {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{"members": team.Members})
@@ -75,4 +79,17 @@ func (tc TeamsController) DeleteTeam(c *gin.Context) {
 		return
 	}
 	c.AbortWithStatus(204)
+}
+func masrshalToTeam(m *bson.M) (*models.Team, error) {
+	var t *models.Team
+
+	b, err := bson.Marshal(m)
+	if err != nil {
+		return nil, err
+	}
+	err = bson.Unmarshal(b, &t)
+	if err != nil {
+		return nil, err
+	}
+	return t, nil
 }
